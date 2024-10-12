@@ -1493,7 +1493,7 @@ class SpeculativeConfig:
         else:
             draft_model = self.draft_model_config.model
         num_spec_tokens = self.num_speculative_tokens
-        return f"SpeculativeConfig({draft_model=}, {num_spec_tokens=})"
+        return f"SpeculativeConfig({draft_model=}, {num_spec_tokens=}, {self.speculative_disable_mqa_scorer})"
 
 
 @dataclass

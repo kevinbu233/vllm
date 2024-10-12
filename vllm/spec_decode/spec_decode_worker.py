@@ -292,6 +292,9 @@ class SpecDecodeWorker(LoraNotSupportedWorkerBase):
         self.previous_hidden_states: Optional[HiddenStates] = None
         self._disable_logprobs = disable_logprobs
         self._disable_log_stats = disable_log_stats
+        self.scoring_time = [0, 0]
+        self.proposal_time = [0, 0]
+        self.verify_time = [0, 0]
 
     def init_device(self) -> None:
         """Initialize both scorer and proposer models.
@@ -678,6 +681,19 @@ class SpecDecodeWorker(LoraNotSupportedWorkerBase):
         stage_times = (proposal_timer.elapsed_time_ms / num_lookahead_slots,
                        scoring_timer.elapsed_time_ms,
                        verification_timer.elapsed_time_ms)
+        self.proposal_time[0] += stage_times[0]
+        self.scoring_time[0] += stage_times[1]
+        self.verify_time[0] += stage_times[2]
+        self.proposal_time[1] += 1
+        self.scoring_time[1] += 1
+        self.verify_time[1] += 1
+        logger.info(
+            "SpecDecodeWorker stage times: "
+            "proposal_tok_ms=%.02f over %.02f avg %.03f"
+            "scoring_time_ms=%.02f over %.02f avg %.03f, verification_time_ms=%.02f over %.02f avg %.03f",
+            self.proposal_time[0], self.proposal_time[1], self.proposal_time[0] / self.proposal_time[1],
+            self.scoring_time[0], self.scoring_time[1], self.scoring_time[0] / self.scoring_time[1],
+            self.verify_time[0], self.verify_time[1], self.verify_time[0] / self.verify_time[1])
 
         return self._create_output_sampler_list(
             execute_model_req.seq_group_metadata_list,

@@ -259,10 +259,18 @@ class Timer:
     """
 
     def __enter__(self):
-        self.start_time = time.time()
+        
+        # self.start_time = time.time()
+        self.start_time = torch.cuda.Event(enable_timing=True)
+        self.start_time.record()
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
-        self.end_time = time.time()
-        self.elapsed_time_s = self.end_time - self.start_time
-        self.elapsed_time_ms = self.elapsed_time_s * 1000
+        # self.end_time = time.time()
+        # self.elapsed_time_s = self.end_time - self.start_time
+        # self.elapsed_time_ms = self.elapsed_time_s * 1000
+        end = torch.cuda.Event(enable_timing=True)
+        end.record()
+        torch.cuda.synchronize()
+        self.elapsed_time_ms = self.start_time.elapsed_time(end)
+        # self.elapsed_time_ms = self.elapsed_time_s * 1000
